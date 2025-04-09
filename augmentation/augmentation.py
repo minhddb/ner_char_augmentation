@@ -16,14 +16,12 @@ class Augmentation(Data):
                  iteration: int = 1,
                  segment: str="span",
                  windows: int = 1,
-                 seed:int=42
                  ):
         super().__init__(data, tag_column, id2label)
         self.stratified_samples = stratified_samples
         self.iteration = iteration
         self.segment = segment
         self.windows = windows
-        self.seed = seed
         self.entity_sequences = [sequence for sequence in self.get_entity_sequences()]
         self.ratio = ratio
         self.mappings = Mappings(self.entity_sequences)

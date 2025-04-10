@@ -94,9 +94,14 @@ class Data:
 
     def convert_id_to_entity(self):
         for seq in self._yield_from(self.dataset):
-            sequence = {"id": None, "tokens": [], "ner_tags": []}
-            sequence.update({"id": seq["id"], "tokens": seq["tokens"],
-                             "ner_tags": [self.mapping_dict[tag] for tag in seq[self.tag_column]]})
+            sequence = {"id": None, "tokens": [], self.tag_column: []}
+            try:
+                sequence.update({"id": seq["id"], "tokens": seq["tokens"],
+                                 self.tag_column: [self.mapping_dict[tag] for tag in seq[self.tag_column]]})
+            except KeyError:
+                sequence.update({"tokens": seq["tokens"],
+                                 "ner_tags": [self.mapping_dict[tag] for tag in seq[self.tag_column]]})
+                
             yield sequence
 
     @staticmethod

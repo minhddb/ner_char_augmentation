@@ -4,7 +4,6 @@ import os
 # os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 import argparse
 from typing import Dict
-from itertools import product
 
 from dataset import WikiANNDataLoader, GermEval14, GermanLER, WNUTDataLoader
 from augmentation import Augmentation
@@ -31,16 +30,6 @@ def arguments():
                                                   "wikiann_en",
                                                   "wnut17"])
     parser.add_argument("--model_name")
-    parser.add_argument("--output_dir", default=None, required=False)
-    parser.add_argument("--augmentation", type=str, default="no",
-                        choices=["reverse_letter_case",
-                                 "delete_character",
-                                 "swap_characters",
-                                 "substitute_character",
-                                 "all",
-                                 "no"]
-                        )
-    parser.add_argument("--ratio", type=float, default=0.1)
     parser.add_argument("--segment", type=str, default="span",
                         choices=["span", "windows"])
     parser.add_argument("--stratified_samples", action="store_true")
@@ -198,6 +187,10 @@ def generate_data(data, tags_column, ratios, stratified_samples=True):
             
 if __name__=="__main__":
     args = arguments()
+    args.hf_dataset = "wikiann_de"
+    args.model_name = "TUM/GottBERT_base_last"
+    args.stratified_samples = True
+    args.do_test = True
 
     TEXT_COLUMN = "tokens"
     TAGS_COLUMN = "ner_tags"
@@ -237,7 +230,7 @@ if __name__=="__main__":
     with open(path_results, "w", encoding="utf-8") as out_f:
         out_f.write("model_name\tseed\taug_strategy\tratio\titeration\ttrain_size\tprecision\trecall\tf1\n")
     
-    sample_ratios = [0, 0.1, 0.2, 0.4, 0.6, 0.8]
+    sample_ratios = [0, 0.1, 0.2, 0.4, 0.6, 0.8, 1]
     # ratios = [0]
     for ratio, aug, train_dataset in generate_data(raw_train, TAGS_COLUMN, sample_ratios, args.stratified_samples):
         for run in range(1):

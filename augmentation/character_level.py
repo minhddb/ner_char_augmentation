@@ -20,12 +20,12 @@ class SimpleCharacterBasedPerturbation(SequenceSegmentation):
         :return: List of tokens containing reversed letters cases
         """
         sequence = []
-        for token in self.sequence:
-            if self.sequence.index(token) in self.candidates:
+        for i, token in enumerate(self.sequence):
+            if i in self.candidates:
                 # Select candidate characters for augmentation
                 chars = list(token)
                 n_candidates = round(self.p * len(token))
-                if n_candidates == 0: n_candidates = 1 # enforce at least 1 candidate to augment
+                if n_candidates == 0: n_candidates = 1 # ensure at least 1 character is gonna be augmented
                 char_candidates = np.random.choice([i for i in range(len(chars))], n_candidates, replace=False)
                 for c in char_candidates:
                     chars[c] = chars[c].upper() if chars[c].islower() else chars[c].lower()
@@ -39,8 +39,8 @@ class SimpleCharacterBasedPerturbation(SequenceSegmentation):
         Delete a character / letter from tokens.
         """
         sequence = []
-        for token in self.sequence:
-            if self.sequence.index(token) in self.candidates:
+        for i, token in enumerate(self.sequence):
+            if i in self.candidates:
                 # Length of current token should be at least 2
                 if len(token) >= 2:
                     # Determine number of candidate characters to remove
@@ -60,8 +60,8 @@ class SimpleCharacterBasedPerturbation(SequenceSegmentation):
         E.g.: 'Letter' -> 'Leettr'
         """
         sequence = []
-        for token in self.sequence:
-            if self.sequence.index(token) in self.candidates:
+        for i, token in enumerate(self.sequence):
+            if i in self.candidates:
                 # Current token should contain at least 4 characters
                 if len(token) >= 4 :
                     chars = list(token)
@@ -83,8 +83,8 @@ class SimpleCharacterBasedPerturbation(SequenceSegmentation):
         E.g.: 'A' -> 'E', '1' -> 9.
         """
         sequence = []
-        for token in self.sequence:
-            if self.sequence.index(token) in self.candidates:
+        for i, token in enumerate(self.sequence):
+            if i in self.candidates:
                 chars = list(token)
                 # Select character to substitute
                 char_candidate = np.random.choice([i for i,_ in enumerate(token)], 1).tolist()[0]
@@ -93,10 +93,10 @@ class SimpleCharacterBasedPerturbation(SequenceSegmentation):
                         chars[char_candidate] = random.choice(string.digits)
                     else:
                         char = token[char_candidate]
-                        replacement = ""
+                        replacement = None
                         while char == replacement:
                             replacement = random.choice(string.ascii_lowercase)
-                        if char.isupper:
+                        if char.isupper():
                             replacement = replacement.upper()
                         chars[char_candidate] = replacement
                 token = "".join(chars)
@@ -111,7 +111,7 @@ class SimpleCharacterBasedPerturbation(SequenceSegmentation):
         E.g.: p: 0.3, len(tokens_ids): 10 -> 3 candidates.
         """
         number_of_candidates = round(self.p * len(self.segments_tokens_ids))
-        # We need to extract at least 1 candidate
+        # Ensure, that at least one candidate is selected
         if number_of_candidates == 0:
             number_of_candidates = 1
         return np.random.choice(self.segments_tokens_ids, number_of_candidates, replace=False).tolist()

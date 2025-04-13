@@ -35,43 +35,41 @@ class Augmentation(Data):
                                       swap_characters=[],
                                       substitute_character=[]
                                       )
+        self.samples = [sample for sample in self.get_samples()]
     def __call__(self, **kwargs):
-        samples = [sample for sample in self.get_samples()]
         print(20 * "*" + "Augmentation" + 20 * "*")
         print(f"Segment: {self.segment}")
-        print(f"Number of samples: {len(samples)}")
-        print(f"Number of augmentation rounds: {self.iteration}")
-        print(f"Augmentation ratio: {self.ratio}")
+        print(f"Sample ratio: {self.ratio}")
+        print(f"Number of samples: {len(self.samples)}")
+        print(f"Number of aug. rounds: {self.iteration}")
+        print()
         # Use seq_id to replace original tokens with perturbed ones
         seq_id = 0
         processed=[]
         for sequence, tags in self.sequence_generator():
-            if [sequence, tags] in samples:
+            if [sequence, tags] in self.samples:
                 if [sequence, tags] not in processed:
                     processed.append([sequence, tags])
                     current_iteration = 0
                     while current_iteration < self.iteration:
-                        # Set p dynamically to get more diverse augmented data
-                        p_upper_bound = min(self.ratio, 0.7) # TODO: maybe check if other upper bound is better?
-                        p = random.uniform(0.05, p_upper_bound)
-                        # Re-create augmentation object for each rule in order to get more diverse synthetic data
+                        # Re-create augmentation object for each rule in order to get diffent candidates for augmentation
                         # reverse case
-                        augmentation = SimpleCharacterBasedPerturbation(sequence, tags, p=p, segment=self.segment, windows_size=self.windows)
+                        augmentation = SimpleCharacterBasedPerturbation(sequence, tags, p=self.ratio, segment=self.segment, windows_size=self.windows)
                         augmented = augmentation.reverse_letter_case()
                         if augmented != sequence:
                             self.augmented_samples["reverse_letter_case"].append({"id": str(seq_id), "tokens": augmented, self.tags_column: [self.label2id[tag] for tag in tags]})
                         # remove chars
-                        augmentation = SimpleCharacterBasedPerturbation(sequence, tags, p=p, segment=self.segment, windows_size=self.windows)
+                        augmentation = SimpleCharacterBasedPerturbation(sequence, tags, p=self.ratio, segment=self.segment, windows_size=self.windows)
                         augmented = augmentation.delete_character()
                         if augmented != sequence:
                             self.augmented_samples["delete_character"].append({"id": str(seq_id), "tokens": augmented, self.tags_column: [self.label2id[tag] for tag in tags]})
                         # swap two chars
-                        augmentation = SimpleCharacterBasedPerturbation(sequence, tags, p=p, segment=self.segment, windows_size=self.windows)
+                        augmentation = SimpleCharacterBasedPerturbation(sequence, tags, p=self.ratio, segment=self.segment, windows_size=self.windows)
                         augmented = augmentation.swap_characters()
                         if augmented != sequence:
                             self.augmented_samples["swap_characters"].append({"id": str(seq_id), "tokens": augmented, self.tags_column: [self.label2id[tag] for tag in tags]})
                         # replace chars
-                        augmentation = SimpleCharacterBasedPerturbation(sequence, tags, p=p, segment=self.segment, windows_size=self.windows)
+                        augmentation = SimpleCharacterBasedPerturbation(sequence, tags, p=self.ratio, segment=self.segment, windows_size=self.windows)
                         augmented = augmentation.substitute_character()
                         if augmented != sequence:
                             self.augmented_samples["substitute_character"].append({"id": str(seq_id), "tokens": augmented, self.tags_column: [self.label2id[tag] for tag in tags]})

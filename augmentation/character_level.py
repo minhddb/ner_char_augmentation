@@ -9,7 +9,10 @@ from dataset import SequenceSegmentation
 class SimpleCharacterBasedPerturbation(SequenceSegmentation):
     def __init__(self, sequence: List[str], tags: List[str], p: float=0.1, **kwargs):
         super().__init__(sequence=sequence, tags=tags)
-        self.p = p # p determines the number augmentation candidates
+        # Set p dynamically to get more diverse augmented data
+        # p determines the number augmentation candidates
+        # self.p = random.uniform(0.1, 0.5)
+        self.p = random.uniform(0.1, min(p, 0.5))
         # Get list of segment tokens ids
         self.segments_tokens_ids = list(itertools.chain.from_iterable(self.__call__(**kwargs)))
         self.candidates = self.candidates()
@@ -93,7 +96,7 @@ class SimpleCharacterBasedPerturbation(SequenceSegmentation):
                         chars[char_candidate] = random.choice(string.digits)
                     else:
                         char = token[char_candidate]
-                        replacement = None
+                        replacement = random.choice(string.ascii_lowercase)
                         while char == replacement:
                             replacement = random.choice(string.ascii_lowercase)
                         if char.isupper():
